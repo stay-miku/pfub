@@ -81,11 +81,13 @@ class Config:
             return False
         else:
             self._channel.append(channel_id)
+            self.save()
             return True
 
     def channel_remove(self, channel_id):
         if channel_id in self.channel:
             self._channel.remove(channel_id)
+            self.save()
             return True
         else:
             return False
