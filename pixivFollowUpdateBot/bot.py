@@ -7,6 +7,7 @@ from pbrm import spider
 from pbrm import save_illust
 from .user_config import Config
 from .utils import get_tags, delete_files_in_folder, compress_image_if_needed
+import time
 
 try:
     from telegram import __version_info__
@@ -121,6 +122,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                                                  has_spoiler=has_spoiler)
             file.close()
             delete_files_in_folder(tmp_dir)
+
+        time.sleep(1)
 
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
