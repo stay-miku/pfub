@@ -123,7 +123,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                                                  has_spoiler=has_spoiler)
             file.close()
             delete_files_in_folder(tmp_dir)
-
+        config.last_page = illust
         time.sleep(1)
 
 
