@@ -123,6 +123,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             file.close()
             delete_files_in_folder(tmp_dir)
 
+        time.sleep(1)
+
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
