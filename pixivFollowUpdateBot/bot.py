@@ -56,6 +56,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /cookie_verify 验证cookie可用性
 /status 查看任务状态
 在频道中发送/id可以获取对应的频道id(需要将bot设置管理员并给予发送信息权限)
+注意: 设置last_page时不要让bot一次性发送过多消息(大概25张图片的量),否则大概率会被tg掐断
     """)
 
 
@@ -97,7 +98,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
         user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
         user_name = meta["userName"]
         tags = get_tags(meta)
-        has_spoiler = "R-18" in tags  # 对r18自动遮罩
+        has_spoiler = "#R-18" in tags  # 对r18自动遮罩
         caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>".format(
             " ".join(tags), user_url, user_name, origin_url, title
         )
