@@ -105,8 +105,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                      not os.path.isdir(os.path.join(tmp_dir, i))]
             bytes_files = [compress_image_if_needed(f.read()) for f in files][0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
             for channel in config.channel:
-                await context.bot.send_media_group(chat_id=channel, media=[InputMediaPhoto(media=m) for m in bytes_files]
-                                                   , caption=caption, parse_mode="HTML", has_spoiler=has_spoiler)
+                await context.bot.send_media_group(chat_id=channel, media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in bytes_files]
+                                                   , caption=caption, parse_mode="HTML")
             for i in files:
                 i.close()
             delete_files_in_folder(tmp_dir)
