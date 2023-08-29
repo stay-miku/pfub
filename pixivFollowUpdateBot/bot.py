@@ -192,7 +192,7 @@ async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if context.args[0] == "cookie":
-            cookie = context.args[1]
+            cookie = " ".join(context.args[1:])
             config = Config.get(get_user_config_path(update))
             config.cookie = cookie
             await context.bot.send_message(chat_id=update.message.chat_id, text="设置成功")
