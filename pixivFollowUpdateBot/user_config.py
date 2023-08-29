@@ -23,7 +23,7 @@ class Config:
             self.save()
         else:
             self.load(path)
-            self.path = path
+            self._path = path
 
     @classmethod
     def get(cls, path: str):
@@ -97,7 +97,7 @@ class Config:
             return []
 
         else:
-            self.last_page = result[0]
+            self._last_page = result[0]
             return result[::-1]
 
     def save(self):
@@ -112,10 +112,10 @@ class Config:
     def load(self, path):
         with open(path, "r", encoding="utf-8") as f:
             data = json.loads(f.read())
-            self.last_page = data["last_page"]
-            self.cookie = data["cookie"]
-            self.check_interval = data["check_interval"]
-            self.channel = data["channel"]
+            self._last_page = data["last_page"]
+            self._cookie = data["cookie"]
+            self._check_interval = data["check_interval"]
+            self._channel = data["channel"]
 
     def cookie_verify(self):
         try:
