@@ -123,8 +123,6 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             file.close()
             delete_files_in_folder(tmp_dir)
 
-        time.sleep(1)
-
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
@@ -294,4 +292,4 @@ def run(bot_key, tmp, config_path):
     application.add_handler(CommandHandler("status", status))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    application.run_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600, pool_timeout=600, connect_timeout=600, timeout=600)
