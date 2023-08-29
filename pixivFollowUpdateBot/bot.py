@@ -6,7 +6,7 @@ import os
 from pbrm import spider
 from pbrm import save_illust
 from .user_config import Config
-from utils import get_tags, delete_files_in_folder, compress_image_if_needed
+from .utils import get_tags, delete_files_in_folder, compress_image_if_needed
 
 try:
     from telegram import __version_info__
