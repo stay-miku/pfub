@@ -129,8 +129,10 @@ async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await context.bot.send_message(chat_id=update.message.chat_id, text="check_interval: {}"
                                            .format(Config.get(get_user_config_path(update)).check_interval))
         elif context.args[0] == "channel":
+            channel = Config.get(get_user_config_path(update)).channel
+            c = [str(i) for i in channel]
             await context.bot.send_message(chat_id=update.message.chat_id, text="channels: {}"
-                                           .format("\n".join(Config.get(get_user_config_path(update)).channel)))
+                                           .format("\n".join(c)))
         else:
             raise KeyError
     except (IndexError, KeyError):
