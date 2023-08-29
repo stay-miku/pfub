@@ -53,6 +53,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /stop 停止推送任务
 /get <PARAMETER> 获取配置信息
 /cookie_verify 验证cookie可用性
+/status 查看任务状态
 在频道中发送/id可以获取对应的频道id(需要将bot设置管理员并给予发送信息权限)
     """)
 
