@@ -86,12 +86,14 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             for channel in config.channel:
                 await context.bot.send_message(chat_id=channel, text="暂不支持插画 漫画 动图以外的作品推送, 不支持的作品id为: {}"
                                                .format(illust))
+            config.last_page = illust
             continue
         except Exception as e:
             logging.error(context.job.data + " " + str(e))
             for channel in config.channel:
                 await context.bot.send_message(chat_id=channel, text="下载文件时发生错误: {}, 发生错误的作品id为: {}"
                                                .format(str(e), illust))
+            config.last_page = illust
             continue
         origin_url = "https://www.pixiv.net/artworks/{}".format(illust)
         title = meta["illustTitle"]
