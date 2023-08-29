@@ -99,7 +99,6 @@ class Config:
             return []
 
         else:
-            self._last_page = result[0]
             return result[::-1]
 
     def save(self):
