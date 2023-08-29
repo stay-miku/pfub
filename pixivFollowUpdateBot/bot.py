@@ -227,7 +227,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if config.cookie_verify()["userId"] is None:
         await context.bot.send_message(chat_id=update.message.chat_id, text="cookie无效,请先设置cookie")
         return
-    context.job_queue.run_repeating(run_task, interval=config.check_interval, name=str(update.message.from_user.id)
+    context.job_queue.run_repeating(check_task, first=1, interval=config.check_interval, name=str(update.message.from_user.id)
                                     , data=get_user_config_path(update))
     await context.bot.send_message(chat_id=update.message.chat_id, text="运行成功")
 
