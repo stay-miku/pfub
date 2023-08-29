@@ -21,7 +21,7 @@ def get_tags(meta):
         if "translation" in tag and "en" in tag["translation"]:
             tags.append("#" + tag["translation"]["en"])
         else:
-            tags.append(tag["tag"])
+            tags.append("#" + tag["tag"])
     return tags
 
 
