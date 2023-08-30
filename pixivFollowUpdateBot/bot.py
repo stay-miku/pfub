@@ -106,7 +106,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         # 区分动图和图片
         if meta["illustType"] == 0 or meta["illustType"] == 1:
-            files = [open(os.path.join(tmp_dir, i), "rb") for i in os.listdir(tmp_dir) if
+            files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
                      not os.path.isdir(os.path.join(tmp_dir, i))]
             bytes_files = [compress_image_if_needed(f.read()) for f in files][
                           0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
