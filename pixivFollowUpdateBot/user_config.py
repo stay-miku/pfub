@@ -154,6 +154,8 @@ class Config:
             self._cookie = data["cookie"]
             self._check_interval = data["check_interval"]
             self._channel = data["channel"]
+
+            # 对无my_channel版本数据的兼容
             if "my_channel" not in data:
                 self._my_channel = self._channel
             else:
