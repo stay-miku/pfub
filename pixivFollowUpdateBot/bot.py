@@ -281,6 +281,24 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                                              , parse_mode="MarkdownV2")
 
 
+async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await context.bot.set_my_commands(BotCommand("start", "开始和基础的帮助"))
+    await context.bot.set_my_commands(BotCommand("set", "设置相关参数"))
+    await context.bot.set_my_commands(BotCommand("get", "获取相关参数"))
+    await context.bot.set_my_commands(BotCommand("run", "运行定时推送任务"))
+    await context.bot.set_my_commands(BotCommand("stop", "停止定时推送任务"))
+    await context.bot.set_my_commands(BotCommand("cookie_verify", "查询当前cookie可用性"))
+    await context.bot.set_my_commands(BotCommand("add_channel", "添加频道到推送列表"))
+    await context.bot.set_my_commands(BotCommand("del_channel", "从推送列表中删除特定频道"))
+    await context.bot.set_my_commands(BotCommand("del_all_channel", "清空推送列表"))
+    await context.bot.set_my_commands(BotCommand("status", "查看当然任务状态"))
+
+    await context.bot.set_my_description(
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中,使用/start开始")
+    await context.bot.set_my_short_description(
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
+
+
 async def run(bot_key, tmp, config_path):
     global tmp_path, user_config_path
     tmp_path = tmp
@@ -298,21 +316,8 @@ async def run(bot_key, tmp, config_path):
     application.add_handler(CommandHandler("del_channel", del_channel))
     application.add_handler(CommandHandler("del_all_channel", del_all_channel))
     application.add_handler(CommandHandler("status", status))
+    application.add_handler(CommandHandler("set_des", set_des))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
-
-    await application.bot.set_my_commands(BotCommand("start", "开始和基础的帮助"))
-    await application.bot.set_my_commands(BotCommand("set", "设置相关参数"))
-    await application.bot.set_my_commands(BotCommand("get", "获取相关参数"))
-    await application.bot.set_my_commands(BotCommand("run", "运行定时推送任务"))
-    await application.bot.set_my_commands(BotCommand("stop", "停止定时推送任务"))
-    await application.bot.set_my_commands(BotCommand("cookie_verify", "查询当前cookie可用性"))
-    await application.bot.set_my_commands(BotCommand("add_channel", "添加频道到推送列表"))
-    await application.bot.set_my_commands(BotCommand("del_channel", "从推送列表中删除特定频道"))
-    await application.bot.set_my_commands(BotCommand("del_all_channel", "清空推送列表"))
-    await application.bot.set_my_commands(BotCommand("status", "查看当然任务状态"))
-
-    await application.bot.set_my_description("一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中,使用/start开始")
-    await application.bot.set_my_short_description("一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
 
     application.run_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600, pool_timeout=600
                             , connect_timeout=600, timeout=600)
