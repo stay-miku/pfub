@@ -282,16 +282,17 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.bot.set_my_commands(BotCommand("start", "开始和基础的帮助"))
-    await context.bot.set_my_commands(BotCommand("set", "设置相关参数"))
-    await context.bot.set_my_commands(BotCommand("get", "获取相关参数"))
-    await context.bot.set_my_commands(BotCommand("run", "运行定时推送任务"))
-    await context.bot.set_my_commands(BotCommand("stop", "停止定时推送任务"))
-    await context.bot.set_my_commands(BotCommand("cookie_verify", "查询当前cookie可用性"))
-    await context.bot.set_my_commands(BotCommand("add_channel", "添加频道到推送列表"))
-    await context.bot.set_my_commands(BotCommand("del_channel", "从推送列表中删除特定频道"))
-    await context.bot.set_my_commands(BotCommand("del_all_channel", "清空推送列表"))
-    await context.bot.set_my_commands(BotCommand("status", "查看当然任务状态"))
+    command_list = [BotCommand("start", "开始和基础的帮助"),
+                    BotCommand("set", "设置相关参数"),
+                    BotCommand("get", "获取相关参数"),
+                    BotCommand("run", "运行定时推送任务"),
+                    BotCommand("stop", "停止定时推送任务"),
+                    BotCommand("cookie_verify", "查询当前cookie可用性"),
+                    BotCommand("add_channel", "添加频道到推送列表"),
+                    BotCommand("del_channel", "从推送列表中删除特定频道"),
+                    BotCommand("del_all_channel", "清空推送列表"),
+                    BotCommand("status", "查看当然任务状态")]
+    await context.bot.set_my_commands(command_list)
 
     await context.bot.set_my_description(
         "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中,使用/start开始")
