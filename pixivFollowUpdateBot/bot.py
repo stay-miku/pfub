@@ -299,7 +299,7 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
 
 
-async def run(bot_key, tmp, config_path):
+def run(bot_key, tmp, config_path):
     global tmp_path, user_config_path
     tmp_path = tmp
     delete_files_in_folder(tmp)
