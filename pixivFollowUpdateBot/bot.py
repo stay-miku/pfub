@@ -55,8 +55,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /get <PARAMETER> 获取配置信息
 /cookie_verify 验证cookie可用性
 /status 查看任务状态
+/post <PID/URL> [<CHANNEL>] 手动推送作品
 在频道中发送/id可以获取对应的频道id(需要将bot设置管理员并给予发送信息权限)
 注意: 设置last_page时不要让bot一次性发送过多消息(大概25张图片的量),否则大概率会被tg掐断
+
+使用步骤:
+先使用/set设置cookie(必须),last_page(必须),check_interval(可选,默认为10分钟)
+使用/add_channel添加要发送的频道(必须,需要将bot设为管理员并给予发送信息权限,之后在频道内发送/id可以获取到当前频道id)
+使用/cookie_verify验证cookie可用性(可选)
+使用/run开始推送
     """)
 
 
@@ -295,7 +302,8 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                     BotCommand("add_channel", "添加频道到推送列表"),
                     BotCommand("del_channel", "从推送列表中删除特定频道"),
                     BotCommand("del_all_channel", "清空推送列表"),
-                    BotCommand("status", "查看当然任务状态")]
+                    BotCommand("status", "查看当然任务状态"),
+                    BotCommand("post", "手动推送某些作品(用于补发等)")]
     await context.bot.set_my_commands(command_list)
 
     await context.bot.set_my_description(
@@ -304,6 +312,93 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
 
     await update.message.reply_text("ok")
+
+
+async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        if len(context.args) >= 2:
+            channel = int(context.args[1])
+        else:
+            channel = None
+        pid = context.args[0].split("/")[-1]
+        a = int(pid)
+        if a < 0:
+            raise ValueError
+        tmp_dir = get_tmp_path()
+        config = Config.get(get_user_config_path(update))
+        user = config.cookie_verify()
+        if user["userId"] is None:
+            context.bot.send_message(chat_id=update.message.chat_id, text="cookie无效,请先重新设置cookie")
+            return
+
+        cookie = config.cookie
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir)
+        delete_files_in_folder(tmp_dir)
+
+        try:
+            meta = spider.get_illust_meta(pid, cookie)
+            save_illust.save_illust(pid, tmp_dir, cookie, True, False, True, False)
+        except pbrm.UnSupportIllustType:
+            await context.bot.send_message(chat_id=update.message.chat_id, text="暂不支持插画 漫画 动图以外的作品推送"
+                                           .format(pid))
+            return
+        except Exception as e:
+            logging.error(context.job.data + " " + str(e))
+            await context.bot.send_message(chat_id=update.message.chat_id, text="下载文件时发生错误: {}"
+                                           .format(str(e), pid))
+            return
+        origin_url = "https://www.pixiv.net/artworks/{}".format(pid)
+        title = meta["illustTitle"]
+        user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
+        user_name = meta["userName"]
+        tags = get_tags(meta)
+        has_spoiler = "#R-18" in tags  # 对r18自动遮罩
+        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>\n<i>手动推送</i>".format(
+            " ".join(tags), user_url, user_name, origin_url, title
+        )
+        # 区分动图和图片
+        if meta["illustType"] == 0 or meta["illustType"] == 1:
+            files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
+                     not os.path.isdir(os.path.join(tmp_dir, i))]
+            bytes_files = [compress_image_if_needed(f.read()) for f in files][
+                          0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
+            if channel:
+                await context.bot.send_media_group(chat_id=channel,
+                                                   media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
+                                                          bytes_files]
+                                                   , caption=caption, parse_mode="HTML")
+            else:
+                for c in config.channel:
+                    await context.bot.send_media_group(chat_id=c,
+                                                       media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
+                                                              bytes_files]
+                                                       , caption=caption, parse_mode="HTML")
+            for i in files:
+                i.close()
+            delete_files_in_folder(tmp_dir)
+        elif meta["illustType"] == 2:
+            file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
+            if channel:
+                await context.bot.send_animation(chat_id=channel, animation=file, caption=caption, parse_mode="HTML",
+                                                 has_spoiler=has_spoiler)
+            else:
+                for c in config.channel:
+                    await context.bot.send_animation(chat_id=c, animation=file, caption=caption, parse_mode="HTML",
+                                                     has_spoiler=has_spoiler)
+            file.close()
+            delete_files_in_folder(tmp_dir)
+
+    except (KeyError, IndexError, ValueError):
+        await context.bot.send_message(chat_id=update.message.chat_id, text="""
+用法:
+/post <PID/URL> [<CHANNEL>]
+<PID/URL>: 作品的id或者链接(如111286968或https://www.pixiv.net/artworks/111286968)
+<CHANNEL>: 可选,频道id,为空时向推送列表里所有的频道推送,不为空则向指定频道推送
+和定时推送任务不同的是会在发送消息里额外附加一个"手动推送"
+        """)
+    except Exception as e:
+        await context.bot.send_message(chat_id=update.message.chat_id, text="发送错误: {}".format(str(e)))
 
 
 def run(bot_key, tmp, config_path):
@@ -324,6 +419,7 @@ def run(bot_key, tmp, config_path):
     application.add_handler(CommandHandler("del_all_channel", del_all_channel))
     application.add_handler(CommandHandler("status", status))
     application.add_handler(CommandHandler("set_des", set_des))
+    application.add_handler(CommandHandler("post", post))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600, pool_timeout=600
