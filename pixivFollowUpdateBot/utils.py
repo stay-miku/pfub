@@ -51,7 +51,7 @@ def get_image_format(byte_data):
     if byte_data.startswith(b'\x89PNG'):
         return 'png'
     elif byte_data.startswith(b'\xff\xd8'):
-        return 'jpg'
+        return 'jpeg'
     else:
         raise Exception("未知的文件格式")
 
