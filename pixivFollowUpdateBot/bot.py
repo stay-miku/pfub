@@ -77,56 +77,60 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
     cookie = config.cookie
-
-    for illust in new_illusts:
-        try:
-            meta = spider.get_illust_meta(illust, cookie)
-            save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False)
-        except pbrm.UnSupportIllustType:
-            for channel in config.channel:
-                await context.bot.send_message(chat_id=channel, text="暂不支持插画 漫画 动图以外的作品推送, 不支持的作品id为: {}"
-                                               .format(illust))
+    try:
+        for illust in new_illusts:
+            try:
+                meta = spider.get_illust_meta(illust, cookie)
+                save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False)
+            except pbrm.UnSupportIllustType:
+                for channel in config.channel:
+                    await context.bot.send_message(chat_id=channel, text="暂不支持插画 漫画 动图以外的作品推送, 不支持的作品id为: {}"
+                                                   .format(illust))
+                config.last_page = illust
+                continue
+            except Exception as e:
+                logging.error(context.job.data + " " + str(e))
+                for channel in config.channel:
+                    await context.bot.send_message(chat_id=channel, text="下载文件时发生错误: {}, 发生错误的作品id为: {}"
+                                                   .format(str(e), illust))
+                config.last_page = illust
+                continue
+            origin_url = "https://www.pixiv.net/artworks/{}".format(illust)
+            title = meta["illustTitle"]
+            user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
+            user_name = meta["userName"]
+            tags = get_tags(meta)
+            has_spoiler = "#R-18" in tags  # 对r18自动遮罩
+            caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>".format(
+                " ".join(tags), user_url, user_name, origin_url, title
+            )
+            # 区分动图和图片
+            if meta["illustType"] == 0 or meta["illustType"] == 1:
+                files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
+                         not os.path.isdir(os.path.join(tmp_dir, i))]
+                bytes_files = [compress_image_if_needed(f.read()) for f in files][
+                              0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
+                for channel in config.channel:
+                    await context.bot.send_media_group(chat_id=channel,
+                                                       media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
+                                                              bytes_files]
+                                                       , caption=caption, parse_mode="HTML")
+                for i in files:
+                    i.close()
+                delete_files_in_folder(tmp_dir)
+            elif meta["illustType"] == 2:
+                file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
+                for channel in config.channel:
+                    await context.bot.send_animation(chat_id=channel, animation=file, caption=caption, parse_mode="HTML",
+                                                     has_spoiler=has_spoiler)
+                file.close()
+                delete_files_in_folder(tmp_dir)
             config.last_page = illust
-            continue
-        except Exception as e:
-            logging.error(context.job.data + " " + str(e))
-            for channel in config.channel:
-                await context.bot.send_message(chat_id=channel, text="下载文件时发生错误: {}, 发生错误的作品id为: {}"
-                                               .format(str(e), illust))
-            config.last_page = illust
-            continue
-        origin_url = "https://www.pixiv.net/artworks/{}".format(illust)
-        title = meta["illustTitle"]
-        user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
-        user_name = meta["userName"]
-        tags = get_tags(meta)
-        has_spoiler = "#R-18" in tags  # 对r18自动遮罩
-        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>".format(
-            " ".join(tags), user_url, user_name, origin_url, title
-        )
-        # 区分动图和图片
-        if meta["illustType"] == 0 or meta["illustType"] == 1:
-            files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
-                     not os.path.isdir(os.path.join(tmp_dir, i))]
-            bytes_files = [compress_image_if_needed(f.read()) for f in files][
-                          0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
-            for channel in config.channel:
-                await context.bot.send_media_group(chat_id=channel,
-                                                   media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
-                                                          bytes_files]
-                                                   , caption=caption, parse_mode="HTML")
-            for i in files:
-                i.close()
-            delete_files_in_folder(tmp_dir)
-        elif meta["illustType"] == 2:
-            file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
-            for channel in config.channel:
-                await context.bot.send_animation(chat_id=channel, animation=file, caption=caption, parse_mode="HTML",
-                                                 has_spoiler=has_spoiler)
-            file.close()
-            delete_files_in_folder(tmp_dir)
-        config.last_page = illust
-        time.sleep(1)
+            time.sleep(1)
+    except Exception as e:
+        context.bot.send_message(chat_id=context.job.chat_id
+                                 , text="发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
+        logging.error("发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
 
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -243,7 +247,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     context.job_queue.run_repeating(check_task, first=1, interval=config.check_interval,
                                     name=str(update.message.from_user.id)
-                                    , data=get_user_config_path(update))
+                                    , data=get_user_config_path(update), chat_id=update.message.chat_id)
     await context.bot.send_message(chat_id=update.message.chat_id, text="运行成功")
 
 
