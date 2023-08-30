@@ -2,6 +2,20 @@ import shutil
 import os
 from PIL import Image
 import io
+from typing import List
+
+
+special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "/", "\\", "."]
+special_char_to_underline = [" "]
+
+
+def replace_special_char(tags: List[str]) -> List[str]:
+    for char in special_char_to_underline:
+        tags = [i.replace(char, "_") for i in tags]
+    for char in special_char_to_blank:
+        tags = [i.replace(char, "") for i in tags]
+
+    return tags
 
 
 # rm -rf ./*
@@ -22,7 +36,7 @@ def get_tags(meta):
             tags.append("#" + tag["translation"]["en"])
         else:
             tags.append("#" + tag["tag"])
-    return tags
+    return replace_special_char(tags)
 
 
 def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
