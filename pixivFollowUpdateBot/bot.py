@@ -47,8 +47,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 一个自动推送p站关注画师更新作品到频道的bot
 使用方法
 /set <PARAMETER> <VALUE> 设置cookie,最新作品的id,查询间隔
-/add_channel 添加推送频道(频道操作需要频道id,需要将bot设为管理员并给予发送信息权限)
-/del_channel 删除推送频道
+/add_channel <CHANNEL> 添加推送频道(频道操作需要频道id,需要将bot设为管理员并给予发送信息权限)
+/del_channel <CHANNEL> 删除推送频道
 /del_all_channel 删除所有推送频道
 /run 开始推送任务
 /stop 停止推送任务
@@ -56,8 +56,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /cookie_verify 验证cookie可用性
 /status 查看任务状态
 /post <PID/URL> [<CHANNEL>] 手动推送作品
+对于有参数命令,直接使用命令本身可以查看对应命令帮助
 在频道中发送/id可以获取对应的频道id(需要将bot设置管理员并给予发送信息权限)
-注意: 设置last_page时不要让bot一次性发送过多消息(大概25张图片的量),否则大概率会被tg掐断
+注意: 设置last_page时不要让bot一次性发送过多消息(大概25张图片的量),否则大概率会被tg掐断,当报错Flood control exceeded时就说明被掐断了,等待下一轮的推送即可
 
 使用步骤:
 先使用/set设置cookie(必须),last_page(必须),check_interval(可选,默认为10分钟)
@@ -248,8 +249,8 @@ async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /set <PARAMETER> <VALUE>
 <PARAMETER>可以为: cookie, last_page, check_interval(VALUE需要为整数)
 cookie: 账号cookie
-last_page: 关注的列表最新作品(不要乱设置,否则会导致将所有(34页)关注的画师最近更新全部发出来)
-check_interval: 更新间隔,单位为秒,默认600(10分钟)
+last_page: 关注的列表最新作品(不要乱设置,否则会导致将所有(34页)关注的画师最近更新全部发出来,然后被掐断推送)
+check_interval: 更新间隔,单位为秒,默认600(10分钟),不要设置太低,有可能导致被p站ban掉
         """)
 
 
