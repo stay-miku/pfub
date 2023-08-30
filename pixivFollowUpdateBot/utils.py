@@ -44,7 +44,7 @@ def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
         if len(image_bytes) <= max_size:
             return image_bytes
         else:
-            image_bytes = compress_image_if_needed(image_bytes, max_size)
+            image_bytes = compress_image(image_bytes, max_size)
 
 
 def get_image_format(byte_data):
