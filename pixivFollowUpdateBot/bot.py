@@ -281,7 +281,7 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                                              , parse_mode="MarkdownV2")
 
 
-def run(bot_key, tmp, config_path):
+async def run(bot_key, tmp, config_path):
     global tmp_path, user_config_path
     tmp_path = tmp
     delete_files_in_folder(tmp)
