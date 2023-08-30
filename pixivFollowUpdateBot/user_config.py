@@ -32,7 +32,7 @@ class Config:
         if os.path.exists(path) and not os.path.isdir(path):
             return cls(path)
         else:
-            return cls(path, "", "", 600, [])
+            return cls(path, "", "", 600, [], [])
 
     @classmethod
     def get_managed_channel_without_someone(cls, path: str, someone: str):
@@ -40,7 +40,8 @@ class Config:
         managed_channel = []
         for user in users:
             user_config = cls.get(user)
-            managed_channel += user_config.my_channel
+            if user_config.my_channel:
+                managed_channel += user_config.my_channel
         return managed_channel
 
     @property
