@@ -314,9 +314,9 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.set_my_commands(command_list)
 
     await context.bot.set_my_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中,使用/start开始")
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启),使用/start开始")
     await context.bot.set_my_short_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启)")
 
     await update.message.reply_text("ok")
 
