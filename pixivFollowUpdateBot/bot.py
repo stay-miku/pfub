@@ -299,6 +299,8 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.set_my_short_description(
         "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
 
+    await update.message.reply_text("ok")
+
 
 def run(bot_key, tmp, config_path):
     global tmp_path, user_config_path
