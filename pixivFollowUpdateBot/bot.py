@@ -107,7 +107,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
             user_name = meta["userName"]
             tags = get_tags(meta)
-            has_spoiler = "#R-18" in tags  # 对r18自动遮罩
+            has_spoiler = "#R18" in tags  # 对r18自动遮罩
             caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>".format(
                 " ".join(tags), user_url, user_name, origin_url, title
             )
@@ -169,9 +169,14 @@ async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
+        global user_config_path
         channel_id = int(context.args[0])
         config = Config.get(get_user_config_path(update))
+        if channel_id in Config.get_managed_channel_without_someone(user_config_path, get_user_config_path(update)):
+            await context.bot.send_message(chat_id=update.message.chat_id, text="该频道已由其他人管理,不可添加")
+            return
         if config.channel_append(channel_id):
+            config.my_channel_append(channel_id)
             await context.bot.send_message(chat_id=update.message.chat_id, text="添加成功")
         else:
             await context.bot.send_message(chat_id=update.message.chat_id, text="频道已存在")
@@ -189,6 +194,7 @@ async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         channel_id = int(context.args[0])
         config = Config.get(get_user_config_path(update))
         if config.channel_remove(channel_id):
+            config.my_channel_remove(channel_id)
             await context.bot.send_message(chat_id=update.message.chat_id, text="删除成功")
         else:
             await context.bot.send_message(chat_id=update.message.chat_id, text="频道不存在")
@@ -205,6 +211,7 @@ async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     try:
         config = Config.get(get_user_config_path(update))
         config.channel = []
+        config.my_channel = []
         await context.bot.send_message(chat_id=update.message.chat_id, text="清除成功")
     except (IndexError, KeyError, ValueError):
         await context.bot.send_message(chat_id=update.message.chat_id, text="""
@@ -328,8 +335,16 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         config = Config.get(get_user_config_path(update))
         user = config.cookie_verify()
         if user["userId"] is None:
-            context.bot.send_message(chat_id=update.message.chat_id, text="cookie无效,请先重新设置cookie")
+            await context.bot.send_message(chat_id=update.message.chat_id, text="cookie无效,请先重新设置cookie")
             return
+
+        global user_config_path
+        if channel and channel in Config.get_managed_channel_without_someone(user_config_path, get_user_config_path(update)):
+            await context.bot.send_message(chat_id=update.message.chat_id, text="该频道由其他人管理,不可推送消息")
+            return
+
+        if channel:
+            config.my_channel_append(channel)
 
         cookie = config.cookie
         if not os.path.exists(tmp_dir):
@@ -353,7 +368,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
         user_name = meta["userName"]
         tags = get_tags(meta)
-        has_spoiler = "#R-18" in tags  # 对r18自动遮罩
+        has_spoiler = "#R18" in tags  # 对r18自动遮罩
         caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>\n<i>手动推送</i>".format(
             " ".join(tags), user_url, user_name, origin_url, title
         )

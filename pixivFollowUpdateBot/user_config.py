@@ -12,14 +12,16 @@ class Config:
     _path: str
     _check_interval: int
     _channel: List[int]
+    _my_channel: List[int]
 
-    def __init__(self, path: str, cookie=None, last_page=None, check_interval=None, channel=None):
+    def __init__(self, path: str, cookie=None, last_page=None, check_interval=None, channel=None, my_channel=None):
         if cookie is not None:
             self._last_page = last_page
             self._cookie = cookie
             self._path = path
             self._check_interval = check_interval
             self._channel = channel
+            self._my_channel = my_channel
             self.save()
         else:
             self.load(path)
@@ -31,6 +33,15 @@ class Config:
             return cls(path)
         else:
             return cls(path, "", "", 600, [])
+
+    @classmethod
+    def get_managed_channel_without_someone(cls, path: str, someone: str):
+        users = [os.path.join(path, i) for i in os.listdir(path) if i != someone]
+        managed_channel = []
+        for user in users:
+            user_config = cls.get(user)
+            managed_channel += user_config.my_channel
+        return managed_channel
 
     @property
     def last_page(self) -> str:
@@ -51,6 +62,10 @@ class Config:
     @property
     def channel(self) -> List[int]:
         return self._channel
+
+    @property
+    def my_channel(self) -> List[int]:
+        return self._my_channel
 
     @last_page.setter
     def last_page(self, value: str):
@@ -76,6 +91,11 @@ class Config:
         self._channel = value
         self.save()
 
+    @my_channel.setter
+    def my_channel(self, value: List[int]):
+        self._my_channel = value
+        self.save()
+
     def channel_append(self, channel_id) -> bool:
         if channel_id in self.channel:
             return False
@@ -87,6 +107,22 @@ class Config:
     def channel_remove(self, channel_id):
         if channel_id in self.channel:
             self._channel.remove(channel_id)
+            self.save()
+            return True
+        else:
+            return False
+
+    def my_channel_append(self, channel_id: int) -> bool:
+        if channel_id in self._my_channel:
+            return False
+        else:
+            self._my_channel.append(channel_id)
+            self.save()
+            return True
+
+    def my_channel_remove(self, channel_id: int) -> bool:
+        if channel_id in self._my_channel:
+            self._my_channel.remove(channel_id)
             self.save()
             return True
         else:
@@ -107,7 +143,8 @@ class Config:
                 "last_page": self.last_page,
                 "cookie": self.cookie,
                 "check_interval": self.check_interval,
-                "channel": self.channel
+                "channel": self.channel,
+                "my_channel": self.my_channel
             }, ensure_ascii=False))
 
     def load(self, path):
@@ -117,6 +154,10 @@ class Config:
             self._cookie = data["cookie"]
             self._check_interval = data["check_interval"]
             self._channel = data["channel"]
+            if "my_channel" not in data:
+                self._my_channel = self._channel
+            else:
+                self._my_channel = data["my_channel"]
 
     def cookie_verify(self):
         try:
