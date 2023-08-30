@@ -47,11 +47,22 @@ def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
             image_bytes = compress_image_if_needed(image_bytes, max_size)
 
 
+def get_image_format(byte_data):
+    if byte_data.startswith(b'\x89PNG'):
+        return 'png'
+    elif byte_data.startswith(b'\xff\xd8'):
+        return 'jpg'
+    else:
+        raise Exception("未知的文件格式")
+
+
 def compress_image(image_bytes, max_size=1024*1024*9.5):
     image = Image.open(io.BytesIO(image_bytes))
 
     if len(image_bytes) <= max_size:
         return image_bytes
+
+    image_format = get_image_format(image_bytes)
 
     # Calculate the compression ratio
     compression_ratio = max_size / len(image_bytes)
@@ -63,7 +74,7 @@ def compress_image(image_bytes, max_size=1024*1024*9.5):
 
     # Save the resized image to a bytes object
     output = io.BytesIO()
-    resized_image.save(output, "png")
+    resized_image.save(output, image_format)
     compressed_bytes = output.getvalue()
     output.close()
 
