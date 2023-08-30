@@ -40,6 +40,14 @@ def get_tags(meta):
 
 
 def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
+    while 1:
+        if len(image_bytes) <= max_size:
+            return image_bytes
+        else:
+            image_bytes = compress_image_if_needed(image_bytes, max_size)
+
+
+def compress_image(image_bytes, max_size=1024*1024*9.5):
     image = Image.open(io.BytesIO(image_bytes))
 
     if len(image_bytes) <= max_size:

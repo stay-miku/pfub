@@ -83,6 +83,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
+    delete_files_in_folder(tmp_dir)
     cookie = config.cookie
     try:
         for illust in new_illusts:
@@ -128,15 +129,16 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             elif meta["illustType"] == 2:
                 file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
                 for channel in config.channel:
-                    await context.bot.send_animation(chat_id=channel, animation=file, caption=caption, parse_mode="HTML",
+                    await context.bot.send_animation(chat_id=channel, animation=file, caption=caption,
+                                                     parse_mode="HTML",
                                                      has_spoiler=has_spoiler)
                 file.close()
                 delete_files_in_folder(tmp_dir)
             config.last_page = illust
             time.sleep(1)
     except Exception as e:
-        context.bot.send_message(chat_id=context.job.chat_id
-                                 , text="发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
+        await context.bot.send_message(chat_id=context.job.chat_id
+                                       , text="发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
         logging.error("发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
 
 
@@ -261,7 +263,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     context.job_queue.run_repeating(check_task, first=1, interval=config.check_interval,
                                     name=str(update.message.from_user.id)
-                                    , data=get_user_config_path(update), chat_id=update.message.chat_id)
+                                    , data=get_user_config_path(update), chat_id=update.effective_message.chat_id)
     await context.bot.send_message(chat_id=update.message.chat_id, text="运行成功")
 
 
@@ -339,7 +341,8 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
 
         global user_config_path
-        if channel and channel in Config.get_managed_channel_without_someone(user_config_path, get_user_config_path(update)):
+        if channel and channel in Config.get_managed_channel_without_someone(user_config_path,
+                                                                             get_user_config_path(update)):
             await context.bot.send_message(chat_id=update.message.chat_id, text="该频道由其他人管理,不可推送消息")
             return
 
@@ -414,6 +417,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """)
     except Exception as e:
         await context.bot.send_message(chat_id=update.message.chat_id, text="发送错误: {}".format(str(e)))
+        logging.error("发送错误: {}".format(str(e)))
 
 
 def run(bot_key, tmp, config_path):
