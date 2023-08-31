@@ -43,6 +43,7 @@ def get_tmp_path():
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("start by {}".format(update.effective_message.from_user.id))
     await update.get_bot().send_message(chat_id=update.message.chat_id, text="""
 一个自动推送p站关注画师更新作品到频道的bot
 使用方法
@@ -88,6 +89,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
     cookie = config.cookie
     try:
         for illust in new_illusts:
+            logging.info("try to post illust {} by {}".format(illust, context.job.chat_id))
             try:
                 meta = spider.get_illust_meta(illust, cookie)
                 save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False)
@@ -144,6 +146,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("get by {}".format(update.effective_message.from_user.id))
     try:
         if context.args[0] == "cookie":
             await context.bot.send_message(chat_id=update.message.chat_id, text="cookie: {}"
@@ -171,6 +174,7 @@ async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("add_channel by {}".format(update.effective_message.from_user.id))
     try:
         global user_config_path
         channel_id = int(context.args[0])
@@ -193,6 +197,7 @@ async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("del_channel by {}".format(update.effective_message.from_user.id))
     try:
         channel_id = int(context.args[0])
         config = Config.get(get_user_config_path(update))
@@ -211,6 +216,7 @@ async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("del_all_channel by {}".format(update.effective_message.from_user.id))
     try:
         config = Config.get(get_user_config_path(update))
         config.channel = []
@@ -225,6 +231,7 @@ async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("set by {}".format(update.effective_message.from_user.id))
     try:
         if context.args[0] == "cookie":
             cookie = " ".join(context.args[1:])
@@ -255,6 +262,7 @@ check_interval: 更新间隔,单位为秒,默认600(10分钟),不要设置太低
 
 
 async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("run by {}".format(update.effective_message.from_user.id))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="任务已启动，无需再次启动")
         return
@@ -269,6 +277,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("stop by {}".format(update.effective_message.from_user.id))
     all_jobs = context.job_queue.get_jobs_by_name(str(update.message.from_user.id))
     if not all_jobs:
         await context.bot.send_message(chat_id=update.message.chat_id, text="任务未运行，无需再停止")
@@ -279,6 +288,7 @@ async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("status by {}".format(update.effective_message.from_user.id))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="当前任务正在运行")
     else:
@@ -286,6 +296,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def cookie_verify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("cookie_verify by {}".format(update.effective_message.from_user.id))
     config = Config.get(get_user_config_path(update))
     user = config.cookie_verify()
     if user["userId"] is None:
@@ -303,6 +314,7 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("set_des by {}".format(update.effective_message.from_user.id))
     command_list = [BotCommand("start", "开始和基础的帮助"),
                     BotCommand("set", "设置相关参数"),
                     BotCommand("get", "获取相关参数"),
@@ -325,6 +337,7 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("post by {}".format(update.effective_message.from_user.id))
     try:
         if len(context.args) >= 2:
             channel = int(context.args[1])

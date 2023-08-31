@@ -36,7 +36,7 @@ class Config:
 
     @classmethod
     def get_managed_channel_without_someone(cls, path: str, someone: str):
-        users = [os.path.join(path, i) for i in os.listdir(path) if i != someone]
+        users = [os.path.join(path, i) for i in os.listdir(path) if os.path.join(path, i) != someone]
         managed_channel = []
         for user in users:
             user_config = cls.get(user)
