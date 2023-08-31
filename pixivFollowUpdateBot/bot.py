@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import pbrm
@@ -8,6 +9,7 @@ from pbrm import save_illust
 from .user_config import Config
 from .utils import get_tags, delete_files_in_folder, compress_image_if_needed
 import time
+from .system_config import SConfig
 
 try:
     from telegram import __version_info__
@@ -30,11 +32,12 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 tmp_path: str
 user_config_path: str
+do_stop_bot = False
 
 
 def get_user_config_path(update: Update):
     global user_config_path
-    return os.path.join(user_config_path, str(update.message.from_user.id) + ".json")
+    return os.path.join(user_config_path, str(update.effective_message.from_user.id) + ".json")
 
 
 def get_tmp_path():
@@ -42,7 +45,27 @@ def get_tmp_path():
     return tmp_path
 
 
+async def check_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if SConfig.admin_verify(update.effective_message.from_user.id):
+        SConfig.add_user(update.effective_message.from_user.id)
+        return True
+    else:
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="权限不足")
+        return False
+
+
+async def check_available(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if SConfig.available_verify(update.effective_message.from_user.id):
+        SConfig.add_user(update.effective_message.from_user.id)
+        return True
+    else:
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="你不在白名单内")
+        return False
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("start by {}".format(update.effective_message.from_user.id))
     await update.get_bot().send_message(chat_id=update.message.chat_id, text="""
 一个自动推送p站关注画师更新作品到频道的bot
@@ -147,6 +170,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("get by {}".format(update.effective_message.from_user.id))
     try:
         if context.args[0] == "cookie":
@@ -175,6 +200,8 @@ async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("add_channel by {}".format(update.effective_message.from_user.id))
     try:
         global user_config_path
@@ -198,6 +225,8 @@ async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("del_channel by {}".format(update.effective_message.from_user.id))
     try:
         channel_id = int(context.args[0])
@@ -217,6 +246,8 @@ async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("del_all_channel by {}".format(update.effective_message.from_user.id))
     try:
         config = Config.get(get_user_config_path(update))
@@ -232,6 +263,8 @@ async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("set by {}".format(update.effective_message.from_user.id))
     try:
         if context.args[0] == "cookie":
@@ -263,6 +296,8 @@ check_interval: 更新间隔,单位为秒,默认600(10分钟),不要设置太低
 
 
 async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("run by {}".format(update.effective_message.from_user.id))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="任务已启动，无需再次启动")
@@ -278,6 +313,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="无效的last_page： {}"
                                        .format(config.last_page))
         return
+    SConfig.add_job_user(update.effective_message.from_user.id)
     context.job_queue.run_repeating(check_task, first=1, interval=config.check_interval,
                                     name=str(update.message.from_user.id)
                                     , data=get_user_config_path(update), chat_id=update.effective_message.chat_id)
@@ -285,6 +321,8 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("stop by {}".format(update.effective_message.from_user.id))
     all_jobs = context.job_queue.get_jobs_by_name(str(update.message.from_user.id))
     if not all_jobs:
@@ -292,10 +330,13 @@ async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     for job in all_jobs:
         job.schedule_removal()
+    SConfig.remove_job_user(update.effective_message.from_user.id)
     await context.bot.send_message(chat_id=update.message.chat_id, text="停止成功")
 
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("status by {}".format(update.effective_message.from_user.id))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="当前任务正在运行")
@@ -304,6 +345,8 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def cookie_verify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("cookie_verify by {}".format(update.effective_message.from_user.id))
     config = Config.get(get_user_config_path(update))
     user = config.cookie_verify()
@@ -322,6 +365,8 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_admin(update, context):
+        return
     logging.info("set_des by {}".format(update.effective_message.from_user.id))
     command_list = [BotCommand("start", "开始和基础的帮助"),
                     BotCommand("set", "设置相关参数"),
@@ -345,6 +390,8 @@ async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_available(update, context):
+        return
     logging.info("post by {}".format(update.effective_message.from_user.id))
     try:
         if len(context.args) >= 2:
@@ -445,13 +492,13 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         logging.error("发送错误: {}".format(str(e)))
 
 
-def run(bot_key, tmp, config_path):
-    global tmp_path, user_config_path
-    tmp_path = tmp
-    delete_files_in_folder(tmp)
-    user_config_path = config_path
-    application = Application.builder().token(bot_key).build()
+def block_thread():
+    while not do_stop_bot:
+        time.sleep(1)
+        print("wait")
 
+
+async def run_bot(application: Application):
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("set", set_value))
     application.add_handler(CommandHandler("get", get_value))
@@ -466,5 +513,55 @@ def run(bot_key, tmp, config_path):
     application.add_handler(CommandHandler("post", post))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
-    application.run_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600, pool_timeout=600
-                            , connect_timeout=600, timeout=600)
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600
+                                            , pool_timeout=600, connect_timeout=600, timeout=600)
+
+    command_list = [BotCommand("start", "开始和基础的帮助"),
+                    BotCommand("set", "设置相关参数"),
+                    BotCommand("get", "获取相关参数"),
+                    BotCommand("run", "运行定时推送任务"),
+                    BotCommand("stop", "停止定时推送任务"),
+                    BotCommand("cookie_verify", "查询当前cookie可用性"),
+                    BotCommand("add_channel", "添加频道到推送列表"),
+                    BotCommand("del_channel", "从推送列表中删除特定频道"),
+                    BotCommand("del_all_channel", "清空推送列表"),
+                    BotCommand("status", "查看当然任务状态"),
+                    BotCommand("post", "手动推送某些作品(用于补发等)")]
+    await application.bot.set_my_commands(command_list)
+
+    await application.bot.set_my_description(
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启),使用/start开始")
+    await application.bot.set_my_short_description(
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启)")
+
+    for admin in SConfig.get_admin():
+        await application.bot.send_message(chat_id=admin, text="bot启动成功")
+
+    for job_user in SConfig.get_job_users():
+        await application.bot.send_message(chat_id=job_user, text="bot重启成功,请手动开启推送任务")
+    SConfig.clean_job_user()
+
+    block = asyncio.to_thread(block_thread)
+    await block
+
+    for admin in SConfig.get_admin():
+        await application.bot.send_message(chat_id=admin, text="bot即将关闭")
+
+    for job_user in SConfig.get_job_users():
+        await application.bot.send_message(chat_id=job_user, text="bot即将关闭(维护或更新),重启后会有上线提示")
+
+    await application.updater.stop()
+    await application.stop()
+    await application.shutdown()
+
+
+def run(bot_key, tmp, config_path):
+    global tmp_path, user_config_path
+    tmp_path = tmp
+    delete_files_in_folder(tmp)
+    user_config_path = config_path
+    application = Application.builder().token(bot_key).build()
+
+    asyncio.run(run_bot(application))
