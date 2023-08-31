@@ -40,11 +40,12 @@ def get_tags(meta):
 
 
 def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
-    while 1:
-        if len(image_bytes) <= max_size:
-            return image_bytes
-        else:
-            image_bytes = compress_image(image_bytes, max_size)
+    # while 1:
+    #     if len(image_bytes) <= max_size:
+    #         return image_bytes
+    #     else:
+    #         image_bytes = compress_image(image_bytes, max_size)
+    return compress_image(image_bytes, max_size)
 
 
 def get_image_format(byte_data):
@@ -59,13 +60,14 @@ def get_image_format(byte_data):
 def compress_image(image_bytes, max_size=1024*1024*9.5):
     image = Image.open(io.BytesIO(image_bytes))
 
-    if len(image_bytes) <= max_size:
+    if len(image_bytes) >= max_size:
+        compression_ratio = max_size / len(image_bytes)
+    elif image.width + image.height >= 10000:
+        compression_ratio = 10000 / (image.width + image.height)
+    else:
         return image_bytes
 
     image_format = get_image_format(image_bytes)
-
-    # Calculate the compression ratio
-    compression_ratio = max_size / len(image_bytes)
 
     # Resize the image using the compression ratio
     new_width = int(image.width * compression_ratio)
