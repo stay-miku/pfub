@@ -64,7 +64,7 @@ def compress_image(image_bytes, max_size=1024*1024*9.5):
     elif (image.width + image.height) >= 10000:
         compression_ratio = 10000 / (image.width + image.height) * 0.8
     else:
-        return image_bytes
+        return image_bytes, False
 
     image_format = get_image_format(image_bytes)
 
