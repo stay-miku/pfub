@@ -35,6 +35,7 @@ user_config_path: str
 do_stop_bot = False
 
 
+# 获取配置区
 def get_user_config_path(update: Update):
     global user_config_path
     return os.path.join(user_config_path, str(update.effective_message.from_user.id) + ".json")
@@ -45,6 +46,7 @@ def get_tmp_path():
     return tmp_path
 
 
+# 权限验证区
 async def check_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if SConfig.admin_verify(update.effective_message.from_user.id):
         SConfig.add_user(update.effective_message.from_user.id)
@@ -63,6 +65,7 @@ async def check_available(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return False
 
 
+# 命令区
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
@@ -364,31 +367,6 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                                              , parse_mode="MarkdownV2")
 
 
-async def set_des(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not await check_admin(update, context):
-        return
-    logging.info("set_des by {}".format(update.effective_message.from_user.id))
-    command_list = [BotCommand("start", "开始和基础的帮助"),
-                    BotCommand("set", "设置相关参数"),
-                    BotCommand("get", "获取相关参数"),
-                    BotCommand("run", "运行定时推送任务"),
-                    BotCommand("stop", "停止定时推送任务"),
-                    BotCommand("cookie_verify", "查询当前cookie可用性"),
-                    BotCommand("add_channel", "添加频道到推送列表"),
-                    BotCommand("del_channel", "从推送列表中删除特定频道"),
-                    BotCommand("del_all_channel", "清空推送列表"),
-                    BotCommand("status", "查看当然任务状态"),
-                    BotCommand("post", "手动推送某些作品(用于补发等)")]
-    await context.bot.set_my_commands(command_list)
-
-    await context.bot.set_my_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启),使用/start开始")
-    await context.bot.set_my_short_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启)")
-
-    await update.message.reply_text("ok")
-
-
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
@@ -492,13 +470,108 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         logging.error("发送错误: {}".format(str(e)))
 
 
+async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_admin(update, context):
+        return
+    await context.bot.send_message(chat_id=update.effective_message.chat_id, text="操作成功")
+    global do_stop_bot
+    do_stop_bot = True
+
+
+async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_admin(update, context):
+        return
+    try:
+        text = context.args[0]
+        if len(context.args) == 2:
+            text_type = context.args[1]
+            if text_type != "HTML" and text_type != "MarkdownV2":
+                raise IndexError
+            for user in SConfig.get_users():
+                await context.bot.send_message(
+                    chat_id=user, text="[admin]" if text_type == "HTML" else "\\[admin\\]" + text, parse_mode=text_type)
+        else:
+            for user in SConfig.get_users():
+                await context.bot.send_message(chat_id=user, text="[admin]" + text)
+    except (KeyError, IndexError):
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="""
+/post_all <TEXT> [<TYPE>]
+向所有用户广播消息
+<TEXT>: 消息内容
+<TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
+        """)
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
+
+
+async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_admin(update, context):
+        return
+    try:
+        text = context.args[0]
+        if len(context.args) == 2:
+            text_type = context.args[1]
+            if text_type != "HTML" and text_type != "MarkdownV2":
+                raise IndexError
+            for user in SConfig.get_admin():
+                await context.bot.send_message(
+                    chat_id=user, text="[admin]" if text_type == "HTML" else "\\[admin\\]" + text, parse_mode=text_type)
+        else:
+            for user in SConfig.get_admin():
+                await context.bot.send_message(chat_id=user, text="[admin]" + text)
+    except (KeyError, IndexError):
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="""
+/post_admin <TEXT> [<TYPE>]
+向所有管理员广播消息
+<TEXT>: 消息内容
+<TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
+            """)
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
+
+
+async def post_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not await check_admin(update, context):
+        return
+    try:
+        text = context.args[0]
+        if len(context.args) == 2:
+            text_type = context.args[1]
+            if text_type != "HTML" and text_type != "MarkdownV2":
+                raise IndexError
+            for user in SConfig.get_job_users():
+                await context.bot.send_message(
+                    chat_id=user, text="[admin]" if text_type == "HTML" else "\\[admin\\]" + text, parse_mode=text_type)
+        else:
+            for user in SConfig.get_job_users():
+                await context.bot.send_message(chat_id=user, text="[admin]" + text)
+    except (KeyError, IndexError):
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="""
+/post_job <TEXT> [<TYPE>]
+向所有正在运行推送任务的用户广播消息
+<TEXT>: 消息内容
+<TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
+            """)
+    except Exception as e:
+        logging.error(e)
+        await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
+
+
+# 系统区
 def block_thread():
+    i = 0
     while not do_stop_bot:
         time.sleep(1)
-        print("wait")
+        i += 1
+        if i > 600:
+            print("system running")
+            i = 0
 
 
 async def run_bot(application: Application):
+    # 初始化命令
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("set", set_value))
     application.add_handler(CommandHandler("get", get_value))
@@ -509,8 +582,11 @@ async def run_bot(application: Application):
     application.add_handler(CommandHandler("del_channel", del_channel))
     application.add_handler(CommandHandler("del_all_channel", del_all_channel))
     application.add_handler(CommandHandler("status", status))
-    application.add_handler(CommandHandler("set_des", set_des))
     application.add_handler(CommandHandler("post", post))
+    application.add_handler(CommandHandler("stop_bot", stop_bot))
+    application.add_handler(CommandHandler("post_all", post_all_user))
+    application.add_handler(CommandHandler("post_admin", post_admin))
+    application.add_handler(CommandHandler("post_job", post_job_user))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
     await application.initialize()
@@ -518,6 +594,7 @@ async def run_bot(application: Application):
     await application.updater.start_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600
                                             , pool_timeout=600, connect_timeout=600, timeout=600)
 
+    # 初始化描述
     command_list = [BotCommand("start", "开始和基础的帮助"),
                     BotCommand("set", "设置相关参数"),
                     BotCommand("get", "获取相关参数"),
@@ -528,7 +605,8 @@ async def run_bot(application: Application):
                     BotCommand("del_channel", "从推送列表中删除特定频道"),
                     BotCommand("del_all_channel", "清空推送列表"),
                     BotCommand("status", "查看当然任务状态"),
-                    BotCommand("post", "手动推送某些作品(用于补发等)")]
+                    BotCommand("post", "手动推送某些作品(用于补发等)"),
+                    BotCommand("stop_bot", "关闭bot,所有管理员和正在运行推送任务的用户都会收到通知")]
     await application.bot.set_my_commands(command_list)
 
     await application.bot.set_my_description(
@@ -536,22 +614,26 @@ async def run_bot(application: Application):
     await application.bot.set_my_short_description(
         "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启)")
 
+    # 重启提示
     for admin in SConfig.get_admin():
-        await application.bot.send_message(chat_id=admin, text="bot启动成功")
+        await application.bot.send_message(chat_id=admin, text="[通知]bot启动成功")
 
     for job_user in SConfig.get_job_users():
-        await application.bot.send_message(chat_id=job_user, text="bot重启成功,请手动开启推送任务")
+        await application.bot.send_message(chat_id=job_user, text="[通知]bot重启成功,请手动开启推送任务")
     SConfig.clean_job_user()
 
+    # 阻塞区
     block = asyncio.to_thread(block_thread)
     await block
 
+    # 关闭提示
     for admin in SConfig.get_admin():
-        await application.bot.send_message(chat_id=admin, text="bot即将关闭")
+        await application.bot.send_message(chat_id=admin, text="[通知]bot即将关闭")
 
     for job_user in SConfig.get_job_users():
-        await application.bot.send_message(chat_id=job_user, text="bot即将关闭(维护或更新),重启后会有上线提示")
+        await application.bot.send_message(chat_id=job_user, text="[通知]bot即将关闭(维护或更新),重启后会有上线提示")
 
+    # 关闭bot
     await application.updater.stop()
     await application.stop()
     await application.shutdown()
