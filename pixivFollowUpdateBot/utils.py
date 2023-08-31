@@ -58,7 +58,7 @@ def get_image_format(byte_data):
 
 def compress_image(image_bytes, max_size=1024*1024*9.5):
     image = Image.open(io.BytesIO(image_bytes))
-    print((image.width + image.height))
+
     if len(image_bytes) >= max_size:
         compression_ratio = max_size / len(image_bytes) * 0.8
     elif (image.width + image.height) >= 10000:
