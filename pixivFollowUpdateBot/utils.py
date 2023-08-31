@@ -5,7 +5,7 @@ import io
 from typing import List
 
 
-special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "/", "\\", "."]
+special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "/", "\\", ".", "+"]
 special_char_to_underline = [" "]
 
 
