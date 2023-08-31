@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 
 import pbrm
 from telegram import __version__ as TG_VER
@@ -127,6 +128,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                 continue
             except Exception as e:
                 logging.error(context.job.data + " " + str(e))
+                traceback.print_exc()
                 await context.bot.send_message(chat_id=context.job.chat_id, text="下载文件时发生错误: {}, 发生错误的作品id为: {}"
                                                .format(str(e), illust))
                 config.last_page = illust
@@ -170,6 +172,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id=context.job.chat_id
                                        , text="发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
         logging.error("发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
+        traceback.print_exc()
 
 
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -410,6 +413,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
         except Exception as e:
             logging.error(context.job.data + " " + str(e))
+            traceback.print_exc()
             await context.bot.send_message(chat_id=update.message.chat_id, text="下载文件时发生错误: {}"
                                            .format(str(e), pid))
             return
@@ -468,6 +472,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await context.bot.send_message(chat_id=update.message.chat_id, text="发送错误: {}".format(str(e)))
         logging.error("发送错误: {}".format(str(e)))
+        traceback.print_exc()
 
 
 async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -501,7 +506,8 @@ async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 <TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
         """)
     except Exception as e:
-        logging.error(e)
+        logging.error("发生错误: {}".format(str(e)))
+        traceback.print_exc()
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
 
 
@@ -528,7 +534,8 @@ async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 <TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
             """)
     except Exception as e:
-        logging.error(e)
+        logging.error("发生错误: {}".format(str(e)))
+        traceback.print_exc()
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
 
 
@@ -555,7 +562,8 @@ async def post_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 <TYPE>: 可选,不填为普通文本,可选HTML,MarkdownV2
             """)
     except Exception as e:
-        logging.error(e)
+        logging.error("发生错误: {}".format(str(e)))
+        traceback.print_exc()
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
 
 
