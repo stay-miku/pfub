@@ -249,7 +249,7 @@ async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 /set <PARAMETER> <VALUE>
 <PARAMETER>可以为: cookie, last_page, check_interval(VALUE需要为整数)
 cookie: 账号cookie
-last_page: 关注的列表最新作品(不要乱设置,否则会导致将所有(34页)关注的画师最近更新全部发出来,然后被掐断推送)
+last_page: 关注的列表最新作品(不要乱设置,否则会导致将所有(34页)关注的画师最近更新全部发出来,然后被掐断推送),该参数用于让bot知道关注列表中最新的作品是哪一个,之后会将这个作品之后的所有作品推送出来
 check_interval: 更新间隔,单位为秒,默认600(10分钟),不要设置太低,有可能导致被p站ban掉
         """)
 
