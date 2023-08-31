@@ -118,6 +118,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             if meta["illustType"] == 0 or meta["illustType"] == 1:
                 files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
                          not os.path.isdir(os.path.join(tmp_dir, i))]
+                if len(files) > 10:
+                    caption += "\n<i>作品图片共{}张,未显示完全</i>".format(len(files))
                 bytes_files = [compress_image_if_needed(f.read()) for f in files][
                               0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
                 for channel in config.channel:
@@ -385,13 +387,16 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_name = meta["userName"]
         tags = get_tags(meta)
         has_spoiler = "#R18" in tags  # 对r18自动遮罩
-        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>\n<i>手动推送</i>".format(
+        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>".format(
             " ".join(tags), user_url, user_name, origin_url, title
         )
         # 区分动图和图片
         if meta["illustType"] == 0 or meta["illustType"] == 1:
             files = [open(os.path.join(tmp_dir, i), "rb") for i in sorted(os.listdir(tmp_dir)) if
                      not os.path.isdir(os.path.join(tmp_dir, i))]
+            if len(files) > 10:
+                caption += "\n<i>作品图片共{}张,未显示完全</i>".format(len(files))
+            caption += "\n<i>手动推送</i>"
             bytes_files = [compress_image_if_needed(f.read()) for f in files][
                           0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
             if channel:
