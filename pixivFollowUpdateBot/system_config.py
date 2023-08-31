@@ -142,7 +142,7 @@ class SConfig:
     @classmethod
     def remove_job_user(cls, user: int):
         config = cls.Get()
-        if user in config:
+        if user in config.job_users:
             config.job_users.remove(user)
             config.save()
             return True
