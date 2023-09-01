@@ -4,6 +4,7 @@ from pbrm.spider import cookie_verify
 from pbrm.error import CookieVerifyError
 from typing import List
 import os
+import logging
 
 
 class Config:
@@ -70,11 +71,13 @@ class Config:
 
     @last_page.setter
     def last_page(self, value: str):
+        logging.info("{}: change last_page {} to {}".format(self.path, self.last_page, value))
         self._last_page = value
         self.save()
 
     @cookie.setter
     def cookie(self, value: str):
+        logging.info("{}: change cookie {} to {}".format(self.path, self.cookie, value))
         self._cookie = value
         self.save()
 
@@ -84,16 +87,23 @@ class Config:
 
     @check_interval.setter
     def check_interval(self, value: int):
+        logging.info("{}: change check_interval {} to {}".format(self.path, self.check_interval, value))
         self._check_interval = value
         self.save()
 
     @channel.setter
     def channel(self, value: List[int]):
+        c = [str(i) for i in self.channel]
+        v = [str(i) for i in value]
+        logging.info("{}: change last_page {} to {}".format(self.path, " ".join(c), " ".join(v)))
         self._channel = value
         self.save()
 
     @my_channel.setter
     def my_channel(self, value: List[int]):
+        c = [str(i) for i in self.my_channel]
+        v = [str(i) for i in value]
+        logging.info("{}: change last_page {} to {}".format(self.path, " ".join(c), " ".join(v)))
         self._my_channel = value
         self.save()
 
@@ -101,12 +111,14 @@ class Config:
         if channel_id in self.channel:
             return False
         else:
+            logging.info("{}: append channel: {}".format(self.path, channel_id))
             self._channel.append(channel_id)
             self.save()
             return True
 
     def channel_remove(self, channel_id):
         if channel_id in self.channel:
+            logging.info("{}: remove channel: {}".format(self.path, channel_id))
             self._channel.remove(channel_id)
             self.save()
             return True
@@ -117,12 +129,14 @@ class Config:
         if channel_id in self._my_channel:
             return False
         else:
+            logging.info("{}: append my channel: {}".format(self.path, channel_id))
             self._my_channel.append(channel_id)
             self.save()
             return True
 
     def my_channel_remove(self, channel_id: int) -> bool:
         if channel_id in self._my_channel:
+            logging.info("{}: remove my channel: {}".format(self.path, channel_id))
             self._my_channel.remove(channel_id)
             self.save()
             return True

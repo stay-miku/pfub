@@ -484,6 +484,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_admin(update, context):
         return
+    logging.info("stop by {}".format(update.effective_message.from_user.id))
     await context.bot.send_message(chat_id=update.effective_message.chat_id, text="操作成功")
     global do_stop_bot
     do_stop_bot = True
@@ -492,6 +493,7 @@ async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
+    logging.info("post all by {}".format(update.effective_message.from_user.id))
     try:
         text = context.args[0]
         if len(context.args) == 2:
@@ -520,6 +522,7 @@ async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
+    logging.info("post admin by {}".format(update.effective_message.from_user.id))
     try:
         text = context.args[0]
         if len(context.args) == 2:
@@ -548,6 +551,7 @@ async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def post_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
+    logging.info("post job user by {}".format(update.effective_message.from_user.id))
     try:
         text = context.args[0]
         if len(context.args) == 2:
@@ -620,7 +624,10 @@ async def run_bot(application: Application):
                     BotCommand("del_all_channel", "清空推送列表"),
                     BotCommand("status", "查看当然任务状态"),
                     BotCommand("post", "手动推送某些作品(用于补发等)"),
-                    BotCommand("stop_bot", "关闭bot,所有管理员和正在运行推送任务的用户都会收到通知")]
+                    BotCommand("stop_bot", "关闭bot,所有管理员和正在运行推送任务的用户都会收到通知"),
+                    BotCommand("post_all", "向所有用户广播消息"),
+                    BotCommand("post_admin", "向所有管理员广播消息"),
+                    BotCommand("post_job", "向所有正在运行推送任务的用户广播消息")]
     await application.bot.set_my_commands(command_list)
 
     await application.bot.set_my_description(
