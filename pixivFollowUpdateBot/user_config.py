@@ -95,7 +95,7 @@ class Config:
     def channel(self, value: List[int]):
         c = [str(i) for i in self.channel]
         v = [str(i) for i in value]
-        logging.info("{}: change last_page {} to {}".format(self.path, " ".join(c), " ".join(v)))
+        logging.info("{}: change channel {} to {}".format(self.path, " ".join(c), " ".join(v)))
         self._channel = value
         self.save()
 
@@ -103,7 +103,7 @@ class Config:
     def my_channel(self, value: List[int]):
         c = [str(i) for i in self.my_channel]
         v = [str(i) for i in value]
-        logging.info("{}: change last_page {} to {}".format(self.path, " ".join(c), " ".join(v)))
+        logging.info("{}: change my_channel {} to {}".format(self.path, " ".join(c), " ".join(v)))
         self._my_channel = value
         self.save()
 
