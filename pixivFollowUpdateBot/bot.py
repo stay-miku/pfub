@@ -69,9 +69,9 @@ def get_user_config_path(update: Update):
     return os.path.join(user_config_path, str(update.effective_message.from_user.id) + ".json")
 
 
-def get_tmp_path():
+def get_tmp_path(user: int):
     global tmp_path
-    return tmp_path
+    return os.path.join(tmp_path, f"{user}/")
 
 
 # 权限验证区
@@ -124,7 +124,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
-    tmp_dir = get_tmp_path()
+    tmp_dir = get_tmp_path(int(context.job.name))
     config = Config.get(context.job.data)
     user = config.cookie_verify()
     if user["userId"] is None:
@@ -351,7 +351,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     SConfig.add_job_user(update.effective_message.from_user.id)
     context.job_queue.run_repeating(check_task, first=1, interval=config.check_interval,
-                                    name=str(update.message.from_user.id)
+                                    name=str(update.effective_message.from_user.id)
                                     , data=get_user_config_path(update), chat_id=update.effective_message.chat_id)
     await context.bot.send_message(chat_id=update.message.chat_id, text="运行成功")
 
@@ -413,7 +413,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         a = int(pid)
         if a < 0:
             raise ValueError
-        tmp_dir = get_tmp_path()
+        tmp_dir = get_tmp_path(update.effective_message.from_user.id)
         config = Config.get(get_user_config_path(update))
         user = config.cookie_verify()
         if user["userId"] is None:
