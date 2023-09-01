@@ -39,7 +39,7 @@ def get_tags(meta):
     return replace_special_char(tags)
 
 
-def compress_image_if_needed(image_bytes, max_size=1024*1024*9.5):
+def compress_image_if_needed(image_bytes, max_size=1024*1024*4):
     result = True
     while result:
         image_bytes, result = compress_image(image_bytes, max_size)
