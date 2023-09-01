@@ -26,8 +26,13 @@ if __version_info__ < (20, 0, 0, "alpha", 1):
 from telegram import Update, InputMediaPhoto, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
+if not os.path.exists("./logs"):
+    os.makedirs("./logs")
+current_time = time.localtime()  # Get the current time as a struct_time object
+formatted_time = time.strftime("%Y-%m-%d_%H-%M-%S", current_time)
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    , filename=os.path.join("./logs", formatted_time + ".log")
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
