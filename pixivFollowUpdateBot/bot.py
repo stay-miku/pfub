@@ -392,7 +392,7 @@ async def cookie_verify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.channel_post.text == "/id":
+    if update.channel_post is not None and update.channel_post.text == "/id":
         await update.channel_post.reply_text("当前频道id为: `{}`"
                                              .format(update.channel_post.chat_id, update.channel_post.chat_id)
                                              , parse_mode="MarkdownV2")
