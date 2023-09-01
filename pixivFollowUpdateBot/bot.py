@@ -154,7 +154,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                     await context.bot.send_media_group(chat_id=channel,
                                                        media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
                                                               bytes_files]
-                                                       , caption=caption, parse_mode="HTML")
+                                                       , caption=caption, parse_mode="HTML", pool_timeout=600,
+                                                       read_timeout=600, write_timeout=600, connect_timeout=600)
                 for i in files:
                     i.close()
                 delete_files_in_folder(tmp_dir)
@@ -163,7 +164,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                 for channel in config.channel:
                     await context.bot.send_animation(chat_id=channel, animation=file, caption=caption,
                                                      parse_mode="HTML",
-                                                     has_spoiler=has_spoiler)
+                                                     has_spoiler=has_spoiler, pool_timeout=600,
+                                                     read_timeout=600, write_timeout=600, connect_timeout=600)
                 file.close()
                 delete_files_in_folder(tmp_dir)
             config.last_page = illust
@@ -439,13 +441,15 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await context.bot.send_media_group(chat_id=channel,
                                                    media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
                                                           bytes_files]
-                                                   , caption=caption, parse_mode="HTML")
+                                                   , caption=caption, parse_mode="HTML", pool_timeout=600,
+                                                   read_timeout=600, write_timeout=600, connect_timeout=600)
             else:
                 for c in config.channel:
                     await context.bot.send_media_group(chat_id=c,
                                                        media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
                                                               bytes_files]
-                                                       , caption=caption, parse_mode="HTML")
+                                                       , caption=caption, parse_mode="HTML", pool_timeout=600,
+                                                       read_timeout=600, write_timeout=600, connect_timeout=600)
             for i in files:
                 i.close()
             delete_files_in_folder(tmp_dir)
@@ -453,11 +457,13 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
             if channel:
                 await context.bot.send_animation(chat_id=channel, animation=file, caption=caption, parse_mode="HTML",
-                                                 has_spoiler=has_spoiler)
+                                                 has_spoiler=has_spoiler, pool_timeout=600,
+                                                 read_timeout=600, write_timeout=600, connect_timeout=600)
             else:
                 for c in config.channel:
                     await context.bot.send_animation(chat_id=c, animation=file, caption=caption, parse_mode="HTML",
-                                                     has_spoiler=has_spoiler)
+                                                     has_spoiler=has_spoiler, pool_timeout=600,
+                                                     read_timeout=600, write_timeout=600, connect_timeout=600)
             file.close()
             delete_files_in_folder(tmp_dir)
 
