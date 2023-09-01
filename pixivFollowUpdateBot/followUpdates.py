@@ -30,12 +30,11 @@ def get_follow_update(last_pid: str, cookie: str) -> list:
     while True:
         illusts = get_update_page(first, cookie)
 
-        if last_pid in illusts:
-            index = illusts.index(last_pid)
-            all_illusts += illusts[:index]
-            break
-        else:
-            all_illusts += illusts
+        for illust in illusts:
+            if int(last_pid) >= int(illust):
+                break
+            else:
+                all_illusts.append(illust)
 
         first += 1
         if first > max_page:
