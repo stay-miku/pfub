@@ -60,6 +60,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 tmp_path: str
 user_config_path: str
 do_stop_bot = False
+max_frame_rate = 20
 
 
 # 获取配置区
@@ -145,7 +146,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             logging.info("try to post illust {} by {}".format(illust, context.job.chat_id))
             try:
                 meta = spider.get_illust_meta(illust, cookie)
-                save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False)
+                clip = save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False, max_frame_rate)
             except pbrm.UnSupportIllustType:
                 logging.warning("unsupported illust type by {}, illust: {}".format(context.job.chat_id, illust))
                 await context.bot.send_message(chat_id=context.job.chat_id, text="暂不支持插画 漫画 动图以外的作品推送, 不支持的作品id为: {}"
@@ -165,8 +166,9 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             user_name = meta["userName"]
             tags = get_tags(meta)
             has_spoiler = "#R18" in tags  # 对r18自动遮罩
-            caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>".format(
+            caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>{}".format(
                 " ".join(tags), user_url, user_name, origin_url, title
+                , "\n<i>该动图减少了帧率,原图请前往p站</i>" if clip else ""
             )
             # 区分动图和图片
             if meta["illustType"] == 0 or meta["illustType"] == 1:
@@ -434,7 +436,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         try:
             meta = spider.get_illust_meta(pid, cookie)
-            save_illust.save_illust(pid, tmp_dir, cookie, True, False, True, False)
+            clip = save_illust.save_illust(pid, tmp_dir, cookie, True, False, True, False, max_frame_rate)
         except pbrm.UnSupportIllustType:
             await context.bot.send_message(chat_id=update.message.chat_id, text="暂不支持插画 漫画 动图以外的作品推送"
                                            .format(pid))
@@ -451,8 +453,9 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_name = meta["userName"]
         tags = get_tags(meta)
         has_spoiler = "#R18" in tags  # 对r18自动遮罩
-        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>".format(
+        caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>{}".format(
             " ".join(tags), user_url, user_name, origin_url, title
+            , "\n<i>该动图减少了帧率,原图请前往p站</i>" if clip else ""
         )
         # 区分动图和图片
         if meta["illustType"] == 0 or meta["illustType"] == 1:
