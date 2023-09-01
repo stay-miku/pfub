@@ -2,7 +2,7 @@ from . import bot
 import os
 
 
-bot_key = "6492897951:AAEmGCgsWA3_V_iYtz4tStOIuDqpndn2pLU"
+bot_key = "6399435166:AAGN5CNPlOtyMZQ6N9teHPMEowhsUTH9pnY"
 user_config_path = "./user"
 tmp_path = "./tmp"
 
