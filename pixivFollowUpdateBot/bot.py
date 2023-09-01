@@ -636,6 +636,9 @@ async def run_bot(application: Application):
     application.add_handler(CommandHandler("post_job", post_job_user))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
+    job_users = SConfig.get_job_users()
+    SConfig.clean_job_user()
+
     await application.initialize()
     await application.start()
     await application.updater.start_polling(allowed_updates=Update.ALL_TYPES, read_timeout=600, write_timeout=600
@@ -668,9 +671,8 @@ async def run_bot(application: Application):
     for admin in SConfig.get_admin():
         await application.bot.send_message(chat_id=admin, text="[通知]bot启动成功")
 
-    for job_user in SConfig.get_job_users():
+    for job_user in job_users:
         await application.bot.send_message(chat_id=job_user, text="[通知]bot重启成功,请手动开启推送任务")
-    SConfig.clean_job_user()
 
     # 阻塞区
     block = asyncio.to_thread(block_thread)
