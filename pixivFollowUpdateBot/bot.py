@@ -30,6 +30,27 @@ if not os.path.exists("./logs"):
     os.makedirs("./logs")
 current_time = time.localtime()  # Get the current time as a struct_time object
 formatted_time = time.strftime("%Y-%m-%d_%H-%M-%S", current_time)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# 创建一个文件处理器，将日志写入文件
+file_handler = logging.FileHandler(os.path.join("./logs", formatted_time + ".log"))
+file_handler.setLevel(logging.INFO)
+
+# 创建一个终端处理器，将日志输出到终端
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# 定义日志消息的格式
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+# 将处理器添加到根日志记录器
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
     , filename=os.path.join("./logs", formatted_time + ".log")
