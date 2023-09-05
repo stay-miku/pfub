@@ -593,6 +593,27 @@ async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="发生错误: {}".format(str(e)))
 
 
+async def get_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_admin(update, context):
+        return
+    logging.info("get job user by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
+    await context.bot.send_message(chat_id=update.effective_message.chat_id, text="\n".join(SConfig.get_job_users()))
+
+
+async def get_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_admin(update, context):
+        return
+    logging.info("get user by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
+    await context.bot.send_message(chat_id=update.effective_message.chat_id, text="\n".join(SConfig.get_users()))
+
+
+async def get_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_admin(update, context):
+        return
+    logging.info("get user name by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
+    await context.bot.send_message(chat_id=update.effective_message.chat_id, text=str(SConfig.get_all_user_name()))
+
+
 async def post_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
@@ -650,6 +671,9 @@ async def run_bot(application: Application):
     application.add_handler(CommandHandler("post_all", post_all_user))
     application.add_handler(CommandHandler("post_admin", post_admin))
     application.add_handler(CommandHandler("post_job", post_job_user))
+    application.add_handler(CommandHandler("get_job_user", get_job_user))
+    application.add_handler(CommandHandler("get_user", get_user))
+    application.add_handler(CommandHandler("get_user_name", get_user_name))
     application.add_handler(MessageHandler(filters.ChatType.CHANNEL, get_channel_id))
 
     job_users = SConfig.get_job_users()
@@ -675,13 +699,16 @@ async def run_bot(application: Application):
                     BotCommand("stop_bot", "关闭bot,所有管理员和正在运行推送任务的用户都会收到通知"),
                     BotCommand("post_all", "向所有用户广播消息"),
                     BotCommand("post_admin", "向所有管理员广播消息"),
-                    BotCommand("post_job", "向所有正在运行推送任务的用户广播消息")]
+                    BotCommand("post_job", "向所有正在运行推送任务的用户广播消息"),
+                    BotCommand("get_job_user", "获取当前运行推送任务的用户"),
+                    BotCommand("get_user", "获取所有用户"),
+                    BotCommand("get_user_name", "获取用户username")]
     await application.bot.set_my_commands(command_list)
 
     await application.bot.set_my_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启),使用/start开始")
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中,使用/start开始")
     await application.bot.set_my_short_description(
-        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中(注意,bot重启并不会通知,重启会导致推送任务丢失需要手动重新开启)")
+        "一个推送pixiv账号关注画师更新的机器人,可以自动将更新的作品推送到频道中")
 
     # 重启提示
     for admin in SConfig.get_admin():
