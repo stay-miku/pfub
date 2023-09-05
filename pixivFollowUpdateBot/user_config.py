@@ -152,6 +152,13 @@ class Config:
         else:
             return result[::-1]
 
+    def get_last_page(self):
+        result = followUpdates.get_update_page(1, self.cookie)[0]
+        if result:
+            return result[0]
+        else:
+            return None
+
     def save(self):
         with open(self.path, "w", encoding="utf-8") as f:
             f.write(json.dumps({

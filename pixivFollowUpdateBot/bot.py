@@ -307,7 +307,21 @@ async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             cookie = " ".join(context.args[1:])
             config = Config.get(get_user_config_path(update))
             config.cookie = cookie
-            await context.bot.send_message(chat_id=update.message.chat_id, text="设置成功")
+            user = config.cookie_verify()
+            if user["userId"] is None:
+                await context.bot.send_message(
+                    chat_id=update.effective_message.chat_id,
+                    text="无效的cookie"
+                )
+                return
+            last_page = config.get_last_page()
+            if last_page:
+                config.last_page = last_page
+            await context.bot.send_message(
+                chat_id=update.message.chat_id
+                , text="设置成功, {}"
+                .format("已自动将last_page设置为: {}".format(last_page) if last_page else "未获取到任何更新记录,请手动设置last_page")
+            )
         elif context.args[0] == "last_page":
             last_page = context.args[1]
             config = Config.get(get_user_config_path(update))
