@@ -97,7 +97,7 @@ async def check_available(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("start by {}".format(update.effective_message.from_user.id))
+    logging.info("start by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     await update.get_bot().send_message(chat_id=update.message.chat_id, text="""
 一个自动推送p站关注画师更新作品到频道的bot
 使用方法
@@ -208,7 +208,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
 async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("get by {}".format(update.effective_message.from_user.id))
+    logging.info("get by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         if context.args[0] == "cookie":
             await context.bot.send_message(chat_id=update.message.chat_id, text="cookie: {}"
@@ -238,7 +238,7 @@ async def get_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("add_channel by {}".format(update.effective_message.from_user.id))
+    logging.info("add_channel by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         global user_config_path
         channel_id = int(context.args[0])
@@ -263,7 +263,7 @@ async def add_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("del_channel by {}".format(update.effective_message.from_user.id))
+    logging.info("del_channel by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         channel_id = int(context.args[0])
         config = Config.get(get_user_config_path(update))
@@ -284,7 +284,7 @@ async def del_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("del_all_channel by {}".format(update.effective_message.from_user.id))
+    logging.info("del_all_channel by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         config = Config.get(get_user_config_path(update))
         config.channel = []
@@ -301,7 +301,7 @@ async def del_all_channel(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def set_value(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("set by {}".format(update.effective_message.from_user.id))
+    logging.info("set by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         if context.args[0] == "cookie":
             cookie = " ".join(context.args[1:])
@@ -334,7 +334,7 @@ check_interval: 更新间隔,单位为秒,默认600(10分钟),不要设置太低
 async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("run by {}".format(update.effective_message.from_user.id))
+    logging.info("run by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="任务已启动，无需再次启动")
         return
@@ -359,7 +359,7 @@ async def run_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("stop by {}".format(update.effective_message.from_user.id))
+    logging.info("stop by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     all_jobs = context.job_queue.get_jobs_by_name(str(update.message.from_user.id))
     if not all_jobs:
         await context.bot.send_message(chat_id=update.message.chat_id, text="任务未运行，无需再停止")
@@ -373,7 +373,7 @@ async def stop_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("status by {}".format(update.effective_message.from_user.id))
+    logging.info("status by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     if context.job_queue.get_jobs_by_name(str(update.message.from_user.id)):
         await context.bot.send_message(chat_id=update.message.chat_id, text="当前任务正在运行")
     else:
@@ -383,7 +383,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def cookie_verify(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("cookie_verify by {}".format(update.effective_message.from_user.id))
+    logging.info("cookie_verify by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     config = Config.get(get_user_config_path(update))
     user = config.cookie_verify()
     if user["userId"] is None:
@@ -403,7 +403,7 @@ async def get_channel_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_available(update, context):
         return
-    logging.info("post by {}".format(update.effective_message.from_user.id))
+    logging.info("post by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         if len(context.args) >= 2:
             channel = int(context.args[1])
@@ -513,7 +513,7 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_admin(update, context):
         return
-    logging.info("stop by {}".format(update.effective_message.from_user.id))
+    logging.info("stop by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     await context.bot.send_message(chat_id=update.effective_message.chat_id, text="操作成功")
     global do_stop_bot
     do_stop_bot = True
@@ -522,7 +522,7 @@ async def stop_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
-    logging.info("post all by {}".format(update.effective_message.from_user.id))
+    logging.info("post all by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         text = context.args[0]
         if len(context.args) == 2:
@@ -551,7 +551,7 @@ async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
-    logging.info("post admin by {}".format(update.effective_message.from_user.id))
+    logging.info("post admin by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         text = context.args[0]
         if len(context.args) == 2:
@@ -580,7 +580,7 @@ async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 async def post_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await check_admin(update, context):
         return
-    logging.info("post job user by {}".format(update.effective_message.from_user.id))
+    logging.info("post job user by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
         text = context.args[0]
         if len(context.args) == 2:
