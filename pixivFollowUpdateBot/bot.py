@@ -78,6 +78,7 @@ def get_tmp_path(user: int):
 async def check_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if SConfig.admin_verify(update.effective_message.from_user.id):
         SConfig.add_user(update.effective_message.from_user.id)
+        SConfig.add_user_name(update.effective_message.from_user.id, update.effective_message.from_user.username)
         return True
     else:
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="权限不足")
@@ -87,6 +88,7 @@ async def check_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def check_available(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if SConfig.available_verify(update.effective_message.from_user.id):
         SConfig.add_user(update.effective_message.from_user.id)
+        SConfig.add_user_name(update.effective_message.from_user.id, update.effective_message.from_user.username)
         return True
     else:
         await context.bot.send_message(chat_id=update.effective_message.chat_id, text="你不在白名单内")

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 import json
 import os
 
@@ -11,6 +11,7 @@ class SConfig:
     admin_users: List[int]
     available_users: List[int]
     users: List[int]
+    users_name: Dict[int, str]
     job_users: List[int]
     path: str
 
@@ -156,13 +157,30 @@ class SConfig:
         config.save()
         return True
 
+    @classmethod
+    def get_user_name(cls, user_id: int):
+        config = cls.Get()
+        if user_id in config.users_name:
+            return config.users_name[user_id]
+        return None
+
+    @classmethod
+    def add_user_name(cls, user_id: int, user_name: str):
+        config = cls.Get()
+        if user_id in config.users_name and user_name == config.users_name[user_id]:
+            return False
+        config.users_name[user_id] = user_name
+        config.save()
+        return True
+
     def save(self):
         with open(self.path, "w", encoding="utf-8") as f:
             f.write(json.dumps({
                 "admin_users": self.admin_users,
                 "available_users": self.available_users,
                 "users": self.users,
-                "job_users": self.job_users
+                "job_users": self.job_users,
+                "users_name": self.users_name
             }, ensure_ascii=False))
 
     def load(self, path: str):
@@ -172,3 +190,7 @@ class SConfig:
             self.available_users = config["available_users"]
             self.users = config["users"]
             self.job_users = config["job_users"]
+            if "users_name" in config:
+                self.users_name = config["users_name"]
+            else:
+                self.users_name = {}
