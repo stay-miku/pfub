@@ -167,11 +167,17 @@ class SConfig:
     @classmethod
     def add_user_name(cls, user_id: int, user_name: str):
         config = cls.Get()
+        if user_name is None:
+            user_name = "None"
         if user_id in config.users_name and user_name == config.users_name[user_id]:
             return False
         config.users_name[user_id] = user_name
         config.save()
         return True
+
+    @classmethod
+    def get_all_user_name(cls):
+        return cls.Get().users_name
 
     def save(self):
         with open(self.path, "w", encoding="utf-8") as f:
