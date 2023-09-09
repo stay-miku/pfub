@@ -40,7 +40,7 @@ file_handler.setLevel(logging.INFO)
 
 # 创建一个终端处理器，将日志输出到终端
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+console_handler.setLevel(logging.DEBUG)
 
 # 定义日志消息的格式
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -182,6 +182,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                     caption += "\n<i>作品图片共{}张,未显示完全</i>".format(len(files))
                 bytes_files = [compress_image_if_needed(f.read()) for f in files][
                               0:10]  # 对超过9.5MB的图片压缩(其实上限是10MB),最多只发送10张图(上限)
+                logging.debug(caption)
                 for channel in config.channel:
                     await context.bot.send_media_group(chat_id=channel,
                                                        media=[InputMediaPhoto(media=m, has_spoiler=has_spoiler) for m in
@@ -193,6 +194,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                 delete_files_in_folder(tmp_dir)
             elif meta["illustType"] == 2:
                 file = open(os.path.join(tmp_dir, [f for f in os.listdir(tmp_dir) if f.endswith(".gif")][0]), "rb")
+                logging.debug(caption)
                 for channel in config.channel:
                     await context.bot.send_animation(chat_id=channel, animation=file, caption=caption,
                                                      parse_mode="HTML",
