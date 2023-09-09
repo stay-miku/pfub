@@ -32,7 +32,7 @@ current_time = time.localtime()  # Get the current time as a struct_time object
 formatted_time = time.strftime("%Y-%m-%d_%H-%M-%S", current_time)
 
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
+root_logger.setLevel(logging.DEBUG)
 
 # 创建一个文件处理器，将日志写入文件
 file_handler = logging.FileHandler(os.path.join("./logs", formatted_time + ".log"))
