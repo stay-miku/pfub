@@ -9,6 +9,22 @@ special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "
 special_char_to_underline = [" "]
 
 
+replace_char = {
+    "(": "（",
+    ")": "）",
+    ",": "，",
+    "\"": "”",
+    "'": "‘"
+}
+
+
+def replace_text(text: str) -> str:
+    for i in replace_char:
+        text = text.replace(i, replace_char[i])
+
+    return text
+
+
 def replace_special_char(tags: List[str]) -> List[str]:
     for char in special_char_to_underline:
         tags = [i.replace(char, "_") for i in tags]

@@ -8,7 +8,7 @@ import os
 from pbrm import spider
 from pbrm import save_illust
 from .user_config import Config
-from .utils import get_tags, delete_files_in_folder, compress_image_if_needed
+from .utils import get_tags, delete_files_in_folder, compress_image_if_needed, replace_text
 import time
 from .system_config import SConfig
 
@@ -61,6 +61,7 @@ tmp_path: str
 user_config_path: str
 do_stop_bot = False
 max_frame_rate = 20
+max_frame_num = 50
 
 
 # 获取配置区
@@ -148,7 +149,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             logging.info("try to post illust {} by {}".format(illust, context.job.chat_id))
             try:
                 meta = spider.get_illust_meta(illust, cookie)
-                clip = save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False, max_frame_rate)
+                clip = save_illust.save_illust(illust, tmp_dir, cookie, True, False, True, False, max_frame_rate
+                                               , max_frame_num)
             except pbrm.UnSupportIllustType:
                 logging.warning("unsupported illust type by {}, illust: {}".format(context.job.chat_id, illust))
                 await context.bot.send_message(chat_id=context.job.chat_id, text="暂不支持插画 漫画 动图以外的作品推送, 不支持的作品id为: {}"
@@ -163,14 +165,14 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
                 config.last_page = illust
                 continue
             origin_url = "https://www.pixiv.net/artworks/{}".format(illust)
-            title = meta["illustTitle"]
+            title = replace_text(meta["illustTitle"])
             user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
-            user_name = meta["userName"]
+            user_name = replace_text(meta["userName"])
             tags = get_tags(meta)
             has_spoiler = "#R18" in tags  # 对r18自动遮罩
             caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>{}".format(
                 " ".join(tags), user_url, user_name, origin_url, title
-                , "\n<i>该动图减少了帧率,原图请前往p站</i>" if clip else ""
+                , "\n<i>该动图减少了帧率或时长,原图请前往p站</i>" if clip else ""
             )
             # 区分动图和图片
             if meta["illustType"] == 0 or meta["illustType"] == 1:
@@ -452,7 +454,8 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         try:
             meta = spider.get_illust_meta(pid, cookie)
-            clip = save_illust.save_illust(pid, tmp_dir, cookie, True, False, True, False, max_frame_rate)
+            clip = save_illust.save_illust(pid, tmp_dir, cookie, True, False, True, False, max_frame_rate
+                                           , max_frame_num)
         except pbrm.UnSupportIllustType:
             await context.bot.send_message(chat_id=update.message.chat_id, text="暂不支持插画 漫画 动图以外的作品推送"
                                            .format(pid))
@@ -464,14 +467,14 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                            .format(str(e), pid))
             return
         origin_url = "https://www.pixiv.net/artworks/{}".format(pid)
-        title = meta["illustTitle"]
+        title = replace_text(meta["illustTitle"])
         user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
-        user_name = meta["userName"]
+        user_name = replace_text(meta["userName"])
         tags = get_tags(meta)
         has_spoiler = "#R18" in tags  # 对r18自动遮罩
         caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a>\norigin: <a href=\"{}\">{}</a>{}".format(
             " ".join(tags), user_url, user_name, origin_url, title
-            , "\n<i>该动图减少了帧率,原图请前往p站</i>" if clip else ""
+            , "\n<i>该动图减少了帧率或时长,原图请前往p站</i>" if clip else ""
         )
         # 区分动图和图片
         if meta["illustType"] == 0 or meta["illustType"] == 1:
@@ -597,14 +600,16 @@ async def get_job_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_admin(update, context):
         return
     logging.info("get job user by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
-    await context.bot.send_message(chat_id=update.effective_message.chat_id, text="\n".join(SConfig.get_job_users()))
+    await context.bot.send_message(chat_id=update.effective_message.chat_id
+                                   , text="job_users" + "\n".join([str(i) for i in SConfig.get_job_users()]))
 
 
 async def get_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await check_admin(update, context):
         return
     logging.info("get user by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
-    await context.bot.send_message(chat_id=update.effective_message.chat_id, text="\n".join(SConfig.get_users()))
+    await context.bot.send_message(chat_id=update.effective_message.chat_id
+                                   , text="users:\n" + "\n".join([str(i) for i in SConfig.get_users()]))
 
 
 async def get_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
