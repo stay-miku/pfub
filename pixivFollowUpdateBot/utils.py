@@ -3,26 +3,15 @@ import os
 from PIL import Image
 import io
 from typing import List
+from urllib import parse
 
 
 special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "/", "\\", ".", "+"]
 special_char_to_underline = [" "]
 
 
-replace_char = {
-    "(": "（",
-    ")": "）",
-    ",": "，",
-    "\"": "”",
-    "'": "‘"
-}
-
-
 def replace_text(text: str) -> str:
-    for i in replace_char:
-        text = text.replace(i, replace_char[i])
-
-    return text
+    return parse.quote(text)
 
 
 def replace_special_char(tags: List[str]) -> List[str]:
