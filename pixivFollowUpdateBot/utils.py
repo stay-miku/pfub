@@ -3,7 +3,7 @@ import os
 from PIL import Image
 import io
 from typing import List
-from urllib import parse
+import html
 
 
 special_char_to_blank = ["-", "(", ")", "（", "）", "'", "“", "\"", "・", "/", "\\", ".", "+"]
@@ -11,7 +11,7 @@ special_char_to_underline = [" "]
 
 
 def replace_text(text: str) -> str:
-    return parse.quote(text)
+    return html.escape(text)
 
 
 def replace_special_char(tags: List[str]) -> List[str]:
