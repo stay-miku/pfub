@@ -206,7 +206,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             time.sleep(1)
     except Exception as e:
         await context.bot.send_message(chat_id=context.job.chat_id
-                                       , text="发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
+                                       , text="发生错误: {}, 当前last_page: {}\n当前发生错误作品会在下一次任务执行阶段自动重试(发生错误原因一般是bot发送消息过快被tg掐断了,等待重试即可),若单个作品连续发生错误请使用/post_admin联系管理员".format(str(e), config.last_page))
         logging.error("发生错误: {}, 当前last_page: {}".format(str(e), config.last_page))
         traceback.print_exc()
 
@@ -570,7 +570,7 @@ async def post_all_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def post_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if not await check_admin(update, context):
+    if not await check_available(update, context):
         return
     logging.info("post admin by {}, args: {}".format(update.effective_message.from_user.id, " ".join(context.args)))
     try:
@@ -705,7 +705,7 @@ async def run_bot(application: Application):
                     BotCommand("post", "手动推送某些作品(用于补发等)"),
                     BotCommand("stop_bot", "关闭bot,所有管理员和正在运行推送任务的用户都会收到通知"),
                     BotCommand("post_all", "向所有用户广播消息"),
-                    BotCommand("post_admin", "向所有管理员广播消息"),
+                    BotCommand("post_admin", "向管理员发送消息"),
                     BotCommand("post_job", "向所有正在运行推送任务的用户广播消息"),
                     BotCommand("get_job_user", "获取当前运行推送任务的用户"),
                     BotCommand("get_user", "获取所有用户"),
