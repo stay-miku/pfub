@@ -132,8 +132,8 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
     user = config.cookie_verify()
     if user["userId"] is None:
         logging.error(context.job.data + " cookie无效")
-        for channel in config.channel:
-            await context.bot.send_message(chat_id=channel, text="cookie无效,请重新配置cookie")
+        await context.bot.send_message(chat_id=context.job.chat_id
+                                       , text="cookie无效,请重新配置cookie(重新配置cookie会更新last_page)")
 
     logging.info(
         "Start update: {}, userId: {}, userName: {}".format(context.job.data, user["userId"], user["userName"]))
