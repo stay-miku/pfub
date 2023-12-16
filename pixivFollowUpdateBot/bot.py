@@ -169,7 +169,7 @@ async def check_task(context: ContextTypes.DEFAULT_TYPE) -> None:
             user_url = "https://www.pixiv.net/users/{}".format(meta["userId"])
             user_name = replace_text(meta["userName"])
             tags = get_tags(meta)
-            has_spoiler = "#R18" in tags  # 对r18自动遮罩
+            has_spoiler = "#R18" in " ".join(tags)  # 对r18/r18g自动遮罩
             caption = "Tags: {}\nauthor: <a href=\"{}\">{}</a> \norigin: <a href=\"{}\">{}</a>{}".format(
                 " ".join(tags), user_url, user_name, origin_url, title
                 , "\n<i>该动图减少了帧率或时长,原图请前往p站</i>" if clip else ""
